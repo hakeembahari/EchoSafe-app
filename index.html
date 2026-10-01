@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EchoSafe — Companion App Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EFE8F6; --app:#FBF8FE; --card:#FFFFFF; --ink:#2B1B3D; --soft:#6E5F80; --line:#E4DCEE;
+  --pink:#D9628F; --pinkL:#F8D9E6; --mint:#2F8F6B; --mintL:#D6EFE5; --yel:#FFC93C; --yelL:#FFF1C7; --red:#C2415D;
+  --map:#EDE6F4; --road:#FFFFFF; --park:#D6EFE5;
+  --fh:"Fredoka","Trebuchet MS",system-ui,sans-serif; --fb:"Figtree","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#140D1C; --app:#1E1529; --card:#2A1F38; --ink:#F3ECFA; --soft:#B4A6C6; --line:#3A2D4B;
+  --pinkL:#4A2438; --mintL:#173B30; --yelL:#3D3216; --map:#2A1F38; --road:#3A2D4B; --park:#1F4537;}}
+:root[data-theme="dark"]{
+  --bg:#140D1C; --app:#1E1529; --card:#2A1F38; --ink:#F3ECFA; --soft:#B4A6C6; --line:#3A2D4B;
+  --pinkL:#4A2438; --mintL:#173B30; --yelL:#3D3216; --map:#2A1F38; --road:#3A2D4B; --park:#1F4537;}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{height:100%}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--fb);font-size:15px;line-height:1.45;display:flex;justify-content:center;align-items:flex-start}
+.phone{width:100%;max-width:420px;min-height:100%;background:var(--app);display:flex;flex-direction:column;position:relative}
+@media (min-width:600px){.phone{margin:24px 0;min-height:820px;height:820px;border-radius:40px;box-shadow:0 0 0 10px var(--ink);overflow:hidden}}
+header.top{padding:18px 20px 8px;display:flex;justify-content:space-between;align-items:center}
+.brand{font-family:var(--fh);font-weight:600;font-size:24px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;padding:5px 11px;border-radius:999px;background:var(--card);border:1.5px solid var(--line)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--soft)}
+.dot.on{background:var(--mint)}
+main{flex:1;overflow-y:auto;padding:8px 18px 100px}
+section.view{display:none}
+section.view.active{display:block}
+h2{font-family:var(--fh);font-weight:600;font-size:22px;margin:6px 0 12px}
+h3{font-family:var(--fh);font-weight:500;font-size:17px;margin:0 0 6px}
+.card{background:var(--card);border:1.5px solid var(--line);border-radius:22px;padding:16px;margin-bottom:14px}
+.row{display:flex;align-items:center;gap:12px}
+.muted{color:var(--soft);font-size:13px}
+button{font:600 15px var(--fb);cursor:pointer;border:0;border-radius:999px;padding:12px 18px;background:var(--ink);color:var(--app)}
+button.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+button.pink{background:var(--pink);color:#fff}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,.tab:focus-visible{outline:3px solid var(--pink);outline-offset:2px}
+.plush{width:84px;height:84px;flex:none}
+.stat3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat3 div{background:var(--app);border-radius:16px;padding:10px;text-align:center}
+.stat3 b{display:block;font-family:var(--fh);font-size:20px}
+.switch{margin-left:auto;width:52px;height:30px;border-radius:999px;background:var(--line);position:relative;padding:0;flex:none}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .2s}
+.switch[aria-checked="true"]{background:var(--mint)}
+.switch[aria-checked="true"]::after{left:25px}
+.bar{height:10px;border-radius:999px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--pink);border-radius:999px;transition:width .4s}
+nav.tabs{position:absolute;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(5,1fr);background:var(--card);border-top:1.5px solid var(--line);padding:8px 6px calc(8px + env(safe-area-inset-bottom,0px))}
+@media (max-width:599px){nav.tabs{position:fixed;max-width:420px;margin:0 auto}}
+.tab{background:none;color:var(--soft);border-radius:14px;padding:6px 0;font-size:12px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.tab svg{width:24px;height:24px}
+.tab[aria-selected="true"]{color:var(--pink)}
+.tab.sos{color:var(--red)}
+#mapwrap{position:relative;border-radius:22px;overflow:hidden;border:1.5px solid var(--line);touch-action:manipulation}
+#map{display:block;width:100%;height:auto;background:var(--map)}
+.dpad{display:grid;grid-template-columns:repeat(3,48px);grid-template-rows:repeat(2,44px);gap:6px;justify-content:center;margin:12px 0}
+.dpad button{padding:0;border-radius:14px;font-size:18px}
+.dpad .up{grid-column:2}
+.toast{position:absolute;left:50%;top:70px;transform:translateX(-50%);background:var(--ink);color:var(--app);padding:10px 16px;border-radius:999px;font-weight:600;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:9;white-space:nowrap}
+.toast.show{opacity:1}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.coll{background:var(--card);border:1.5px solid var(--line);border-radius:20px;padding:12px;text-align:center}
+.coll.locked{opacity:.5}
+.coll svg{width:72px;height:72px}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:10px}
+.week div{aspect-ratio:1;border-radius:12px;background:var(--app);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--soft)}
+.week div.done{background:var(--yel);color:#2B1B3D}
+.badge{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.badge:last-child{border-bottom:0}
+.badge .ic{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-weight:600;flex:none}
+.sosbtn{width:200px;height:200px;border-radius:50%;margin:10px auto 14px;display:flex;align-items:center;justify-content:center;flex-direction:column;background:var(--red);color:#fff;font-family:var(--fh);font-size:24px;position:relative;user-select:none;-webkit-user-select:none;touch-action:none}
+.sosbtn svg.ring{position:absolute;inset:-10px;width:220px;height:220px;transform:rotate(-90deg)}
+.alarm{animation:flash .5s steps(2) infinite}
+@keyframes flash{50%{background:var(--yel);color:#2B1B3D}}
+@media (prefers-reduced-motion:reduce){.alarm{animation:none}}
+.log{font-size:13px;background:var(--app);border-radius:14px;padding:10px 12px;white-space:pre-wrap;font-variant-numeric:tabular-nums}
+.demo{font-size:12px;color:var(--soft);text-align:center;margin:4px 0 12px}
+</style>
+</head>
+<body>
+<div class="phone">
+  <header class="top">
+    <div class="brand">EchoSafe</div>
+    <span class="pill" id="connPill"><span class="dot" id="connDot"></span><span id="connText">Not paired</span></span>
+  </header>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <main>
+    <!-- HOME -->
+    <section class="view active" id="v-home" aria-label="Home">
+      <div class="card">
+        <div class="row">
+          <svg class="plush" viewBox="0 0 100 100" aria-hidden="true" id="homePlush"></svg>
+          <div style="flex:1">
+            <h3 id="devName">Your EchoSafe</h3>
+            <div class="muted" id="devStatus">Hold your plush near your phone to pair.</div>
+          </div>
+        </div>
+        <div style="margin-top:14px;display:flex;gap:10px">
+          <button id="pairBtn" class="pink" style="flex:1">Pair device</button>
+          <button id="testBtn" class="ghost" disabled>Test squeeze</button>
+        </div>
+      </div>
+      <div class="card" id="devCard">
+        <div class="stat3">
+          <div><b id="batt">—</b><span class="muted">Battery</span></div>
+          <div><b id="signal">—</b><span class="muted">Signal</span></div>
+          <div><b id="lastSeen">—</b><span class="muted">Last seen</span></div>
+        </div>
+        <div class="row" style="margin-top:14px">
+          <div><h3 style="margin:0">Snatch detection</h3><div class="muted">Sirens automatically if your bag is yanked</div></div>
+          <button class="switch" role="switch" aria-checked="false" id="armSw" aria-label="Snatch detection" disabled></button>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <div><h3 style="margin:0">Share live location</h3><div class="muted">Family can see you on your walk home</div></div>
+          <button class="switch" role="switch" aria-checked="false" id="shareSw" aria-label="Share live location" disabled></button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="row" style="justify-content:space-between"><h3 style="margin:0">Level <span id="lvl">1</span></h3><span class="muted"><span id="xp">0</span> / <span id="xpNext">100</span> XP</span></div>
+        <div class="bar" style="margin-top:10px"><i id="xpBar" style="width:0%"></i></div>
+        <div class="row" style="margin-top:14px">
+          <div style="font-family:var(--fh);font-size:34px;font-weight:600;color:var(--pink)" id="streakBig">0</div>
+          <div><b>day streak</b><div class="muted" id="streakHint">Check in today to start your streak.</div></div>
+        </div>
+        <button id="checkinBtn" style="width:100%;margin-top:12px">Daily safety check-in</button>
+      </div>
+      <div class="card">
+        <h3>Emergency contacts</h3>
+        <div class="muted" style="margin-bottom:8px">Alerted with your location when your plush is triggered.</div>
+        <div id="contacts"></div>
+        <button class="ghost" id="addContact" style="width:100%;margin-top:8px">Add contact</button>
+      </div>
+    </section>
+
+    <!-- MAP -->
+    <section class="view" id="v-map" aria-label="Map">
+      <h2>Safe Walk</h2>
+      <div id="mapwrap"><svg id="map" viewBox="0 0 360 420" role="img" aria-label="Map of your area with safe havens and plush friends to collect"></svg></div>
+      <div class="dpad" aria-label="Walk controls">
+        <button class="up" data-d="0,-1" aria-label="Walk north">▲</button>
+        <button data-d="-1,0" aria-label="Walk west">◀</button>
+        <button data-d="0,1" aria-label="Walk south">▼</button>
+        <button data-d="1,0" aria-label="Walk east">▶</button>
+      </div>
+      <div class="card">
+        <div class="row" style="justify-content:space-between">
+          <div><h3 style="margin:0">Today's walk</h3><div class="muted"><span id="steps">0</span> blocks · <span id="havens">0</span> safe havens visited</div></div>
+          <button class="ghost" id="autoWalk">Auto walk</button>
+        </div>
+      </div>
+      <p class="muted">Walk near a <b style="color:var(--mint)">safe haven</b> (24/7 store, police station, clinic) to check in and earn XP. Plush friends appear on safe, well-lit routes. Walk next to one to collect it.</p>
+    </section>
+
+    <!-- QUESTS -->
+    <section class="view" id="v-quests" aria-label="Streaks and quests">
+      <h2>Streaks &amp; quests</h2>
+      <div class="card">
+        <div class="row" style="justify-content:space-between"><h3 style="margin:0">This week</h3><span class="muted"><span id="streak2">0</span>-day streak</span></div>
+        <div class="week" id="week"></div>
+      </div>
+      <div class="card">
+        <h3>Daily quests</h3>
+        <div id="quests"></div>
+      </div>
+      <div class="card">
+        <h3>Badges</h3>
+        <div id="badges"></div>
+      </div>
+    </section>
+
+    <!-- COLLECTION -->
+    <section class="view" id="v-coll" aria-label="Collection">
+      <h2>Plush collection</h2>
+      <p class="muted" style="margin-top:-6px">Collect friends on your Safe Walks. Each one unlocks a skin you can swap onto your device's look in the app.</p>
+      <div class="grid2" id="collGrid"></div>
+    </section>
+
+    <!-- SOS -->
+    <section class="view" id="v-sos" aria-label="Emergency">
+      <h2>Emergency</h2>
+      <p class="demo">Prototype demo: no real alerts are sent.</p>
+      <div class="sosbtn" id="sosBtn" role="button" tabindex="0" aria-label="Hold for two seconds to trigger an emergency alert">
+        <svg class="ring" viewBox="0 0 220 220" aria-hidden="true"><circle cx="110" cy="110" r="104" fill="none" stroke="var(--yel)" stroke-width="8" stroke-dasharray="653" stroke-dashoffset="653" id="ringArc" stroke-linecap="round"/></svg>
+        <span id="sosLabel">Hold</span><small style="font-family:var(--fb);font-size:13px;opacity:.9" id="sosSub">for 2 seconds</small>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:14px">
+        <button class="ghost" id="snatchSim" style="flex:1">Simulate bag snatch</button>
+        <button id="cancelSos" style="flex:1" disabled>I'm safe, stop</button>
+      </div>
+      <div class="card">
+        <h3>Incident log</h3>
+        <div class="muted" style="margin-bottom:8px">Location, time and date are captured instantly so you can share them with the police.</div>
+        <div class="log" id="incLog">No incidents recorded.</div>
+        <button class="ghost" id="copyReport" style="width:100%;margin-top:10px" disabled>Copy police report summary</button>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab" role="tab" aria-selected="true" data-v="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Home</button>
+    <button class="tab" role="tab" aria-selected="false" data-v="map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Walk</button>
+    <button class="tab" role="tab" aria-selected="false" data-v="quests"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c2 4 6 5 6 10a6 6 0 0 1-12 0c0-3 2-4 2-7 2 1 3 3 3 5 1-2 1-5 1-8z"/></svg>Streaks</button>
+    <button class="tab" role="tab" aria-selected="false" data-v="coll"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="6" r="2.5"/><circle cx="17" cy="6" r="2.5"/><circle cx="12" cy="14" r="7"/></svg>Friends</button>
+    <button class="tab sos" role="tab" aria-selected="false" data-v="sos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg>SOS</button>
+  </nav>
+</div>
+
+<script>
+/* ---------- characters (original designs) ---------- */
+const CHARS=[
+ {id:"pekiki",name:"Pekiki",body:"#F4B6CF",ear:"#D9628F",rare:"Common",story:"Shouts the loudest when a friend needs help."},
+ {id:"jagabu",name:"Jagabu",body:"#9ED9C2",ear:"#2F8F6B",rare:"Common",story:"A night-watch bunny who guards the walk home."},
+ {id:"pipi",name:"Pipi",body:"#FFD98A",ear:"#E6A417",rare:"Uncommon",story:"Chubby cheeks made for a good squeeze."},
+ {id:"mochu",name:"Mochu",body:"#E8DDF5",ear:"#9C84C4",rare:"Uncommon",story:"Soft as mochi, brave as a lion."},
+ {id:"nunu",name:"Nunu",body:"#BFD8F5",ear:"#4C7FC0",rare:"Rare",story:"Only appears on well-lit streets after dark."},
+ {id:"wobi",name:"Wobi",body:"#F7C9A8",ear:"#D97A3E",rare:"Legendary",story:"Earned by keeping a 7-day streak."}];
+function plushSVG(c,size){return `<g><ellipse cx="30" cy="22" rx="11" ry="15" fill="${c.ear}"/><ellipse cx="70" cy="22" rx="11" ry="15" fill="${c.ear}"/><ellipse cx="30" cy="24" rx="5" ry="9" fill="${c.body}"/><ellipse cx="70" cy="24" rx="5" ry="9" fill="${c.body}"/><circle cx="50" cy="58" r="34" fill="${c.body}"/><circle cx="38" cy="54" r="4" fill="#2B1B3D"/><circle cx="62" cy="54" r="4" fill="#2B1B3D"/><circle cx="39.5" cy="52.5" r="1.3" fill="#fff"/><circle cx="63.5" cy="52.5" r="1.3" fill="#fff"/><ellipse cx="31" cy="65" rx="6" ry="4" fill="${c.ear}" opacity=".45"/><ellipse cx="69" cy="65" rx="6" ry="4" fill="${c.ear}" opacity=".45"/><path d="M45 64 Q50 69 55 64" stroke="#2B1B3D" stroke-width="2.5" fill="none" stroke-linecap="round"/><rect x="47" y="4" width="6" height="10" rx="3" fill="#B4A6C6"/></g>`}
+
+/* ---------- state ---------- */
+const today=()=>new Date().toISOString().slice(0,10);
+const defState={paired:false,armed:false,share:false,xp:0,level:1,streak:0,lastCheck:null,checkDays:[],collected:[],steps:0,havens:[],incidents:[],quests:{date:null,done:[]},contacts:[{n:"Mum",p:"+60 12-xxx xxxx"}],equipped:"pekiki"};
+let S;
+try{S=Object.assign({},defState,JSON.parse(localStorage.getItem("echosafe")||"{}"))}catch(e){S=Object.assign({},defState)}
+function save(){try{localStorage.setItem("echosafe",JSON.stringify(S))}catch(e){}}
+const $=id=>document.getElementById(id);
+function toast(t){const el=$("toast");el.textContent=t;el.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove("show"),2000)}
+const need=l=>100+(l-1)*60;
+function addXP(n,msg){S.xp+=n;while(S.xp>=need(S.level)){S.xp-=need(S.level);S.level++;toast("Level up! You're now level "+S.level)} if(msg)setTimeout(()=>toast(msg),msg&&S.xp<need(S.level)?0:2100);save();render()}
+
+/* ---------- quests ---------- */
+const QUESTS=[{id:"checkin",t:"Do your daily safety check-in",xp:20},{id:"walk",t:"Walk 10 blocks on a Safe Walk",xp:30},{id:"haven",t:"Check in at 2 safe havens",xp:30},{id:"test",t:"Test your plush's squeeze trigger",xp:15},{id:"collect",t:"Collect a plush friend",xp:25}];
+function questReset(){if(S.quests.date!==today()){S.quests={date:today(),done:[]};S.steps=0;S.havens=[];save()}}
+function completeQuest(id){questReset();if(S.quests.done.includes(id))return;S.quests.done.push(id);const q=QUESTS.find(x=>x.id===id);addXP(q.xp,"Quest done: +"+q.xp+" XP")}
+const BADGES=[
+ {t:"First squeeze",d:"Tested your device",c:"var(--pinkL)",ok:()=>S.quests.done.includes("test")||S.level>1},
+ {t:"Night owl",d:"Visited 3 safe havens in a day",c:"var(--mintL)",ok:()=>S.havens.length>=3},
+ {t:"On a roll",d:"3-day streak",c:"var(--yelL)",ok:()=>S.streak>=3},
+ {t:"Collector",d:"Collected 4 plush friends",c:"var(--pinkL)",ok:()=>S.collected.length>=4},
+ {t:"Guardian",d:"Reached level 5",c:"var(--mintL)",ok:()=>S.level>=5}];
+
+/* ---------- tabs ---------- */
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected","false"));t.setAttribute("aria-selected","true");
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));$("v-"+t.dataset.v).classList.add("active");
+  document.querySelector("main").scrollTop=0;if(t.dataset.v==="map")drawMap()});
+
+/* ---------- home ---------- */
+let pairing=false;
+$("pairBtn").onclick=()=>{
+  if(S.paired){S.paired=false;S.armed=false;S.share=false;save();render();toast("Device unpaired");return}
+  if(pairing)return;pairing=true;$("pairBtn").textContent="Searching…";$("devStatus").textContent="Looking for nearby EchoSafe plushies…";
+  setTimeout(()=>{$("devStatus").textContent="Found Pekiki-4F2A. Connecting…"},900);
+  setTimeout(()=>{pairing=false;S.paired=true;save();render();toast("Paired with your EchoSafe")},1900)};
+$("testBtn").onclick=()=>{toast("Squeeze detected: alarm OK, alerts OK");completeQuest("test")};
+$("armSw").onclick=()=>{S.armed=!S.armed;save();render();toast(S.armed?"Snatch detection on":"Snatch detection off")};
+$("shareSw").onclick=()=>{S.share=!S.share;save();render();toast(S.share?"Sharing live location with your contacts":"Location sharing off")};
+$("checkinBtn").onclick=()=>{
+  const t=today();if(S.lastCheck===t){toast("Already checked in today");return}
+  const y=new Date(Date.now()-864e5).toISOString().slice(0,10);
+  S.streak=(S.lastCheck===y)?S.streak+1:1;S.lastCheck=t;if(!S.checkDays.includes(t))S.checkDays.push(t);
+  if(S.streak>=7&&!S.collected.includes("wobi")){S.collected.push("wobi")}
+  completeQuest("checkin");save();render()};
+$("addContact").onclick=()=>{const n=prompt("Contact name");if(!n)return;const p=prompt("Phone number")||"";S.contacts.push({n:n.slice(0,30),p:p.slice(0,20)});save();render()};
+
+/* ---------- map ---------- */
+const GRID=9, CELL=40, OX=0, OY=30;
+const HAVENS=[{x:1,y:1,n:"24/7 store"},{x:6,y:2,n:"Police station"},{x:3,y:6,n:"Clinic"},{x:7,y:7,n:"24/7 store"},{x:0,y:8,n:"LRT station"}];
+const PARKS=[{x:2,y:2,w:2,h:2},{x:5,y:5,w:2,h:1}];
+let me={x:4,y:4}, trail=[{x:4,y:4}], spawns=[];
+function spawn(){spawns=[];const pool=CHARS.filter(c=>c.id!=="wobi");for(let i=0;i<4;i++){const c=pool[Math.floor(Math.random()*pool.length)];let x,y;do{x=Math.floor(Math.random()*GRID);y=Math.floor(Math.random()*GRID)}while((x===me.x&&y===me.y)||spawns.some(s=>s.x===x&&s.y===y));spawns.push({x,y,c})}}
+spawn();
+const P=(v,o)=>o+v*CELL+CELL/2;
+function drawMap(){
+  let s=`<rect x="0" y="0" width="360" height="420" fill="var(--map)"/>`;
+  PARKS.forEach(p=>s+=`<rect x="${p.x*CELL+6}" y="${OY+p.y*CELL+6}" width="${p.w*CELL-12}" height="${p.h*CELL-12}" rx="10" fill="var(--park)"/>`);
+  for(let i=0;i<GRID;i++){s+=`<line x1="${P(i,OX)}" y1="${OY}" x2="${P(i,OX)}" y2="${OY+GRID*CELL}" stroke="var(--road)" stroke-width="12" stroke-linecap="round"/>`;
+    s+=`<line x1="0" y1="${P(i,OY)}" x2="360" y2="${P(i,OY)}" stroke="var(--road)" stroke-width="12" stroke-linecap="round"/>`}
+  if(trail.length>1)s+=`<polyline points="${trail.map(t=>P(t.x,OX)+","+P(t.y,OY)).join(" ")}" fill="none" stroke="var(--pink)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/>`;
+  HAVENS.forEach(h=>{const v=S.havens.includes(h.x+","+h.y);s+=`<g><circle cx="${P(h.x,OX)}" cy="${P(h.y,OY)}" r="13" fill="${v?"var(--mint)":"var(--card)"}" stroke="var(--mint)" stroke-width="3"/><path d="M${P(h.x,OX)-5} ${P(h.y,OY)}l3.5 3.5 6.5-7" stroke="${v?"#fff":"var(--mint)"}" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>`});
+  spawns.forEach(sp=>s+=`<g transform="translate(${P(sp.x,OX)-16},${P(sp.y,OY)-18}) scale(.32)">${plushSVG(sp.c)}</g>`);
+  s+=`<circle cx="${P(me.x,OX)}" cy="${P(me.y,OY)}" r="20" fill="var(--pink)" opacity=".2"/><circle cx="${P(me.x,OX)}" cy="${P(me.y,OY)}" r="10" fill="var(--pink)" stroke="#fff" stroke-width="3"/>`;
+  s+=`<rect x="8" y="6" width="${S.share?178:120}" height="20" rx="10" fill="var(--card)"/><circle cx="20" cy="16" r="4" fill="${S.paired?"var(--mint)":"var(--soft)"}"/><text x="30" y="20" font-size="11" font-weight="600" fill="var(--ink)" font-family="Figtree,sans-serif">${S.paired?(S.share?"Tracking · shared with family":"Device tracking on"):"Device not paired"}</text>`;
+  $("map").innerHTML=s;$("steps").textContent=S.steps;$("havens").textContent=S.havens.length}
+function move(dx,dy){
+  const nx=me.x+dx, ny=me.y+dy;if(nx<0||ny<0||nx>=GRID||ny>=GRID)return;
+  me={x:nx,y:ny};trail.push({...me});if(trail.length>40)trail.shift();questReset();S.steps++;
+  const h=HAVENS.find(h=>h.x===nx&&h.y===ny);
+  if(h&&!S.havens.includes(nx+","+ny)){S.havens.push(nx+","+ny);addXP(10,"Checked in at "+h.n+": +10 XP");if(S.havens.length>=2)completeQuest("haven")}
+  const i=spawns.findIndex(sp=>Math.abs(sp.x-nx)+Math.abs(sp.y-ny)<=0);
+  if(i>-1){const c=spawns[i].c;spawns.splice(i,1);const isNew=!S.collected.includes(c.id);if(isNew)S.collected.push(c.id);addXP(isNew?25:5,(isNew?"New friend: ":"Found ")+c.name+"!");completeQuest("collect");if(!spawns.length)spawn()}
+  if(S.steps>=10)completeQuest("walk");
+  save();drawMap()}
+document.querySelectorAll(".dpad button").forEach(b=>b.onclick=()=>{const [dx,dy]=b.dataset.d.split(",").map(Number);move(dx,dy)});
+document.addEventListener("keydown",e=>{if(!$("v-map").classList.contains("active"))return;const k={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]}[e.key];if(k){e.preventDefault();move(...k)}});
+let auto=null;
+$("autoWalk").onclick=()=>{if(auto){clearInterval(auto);auto=null;$("autoWalk").textContent="Auto walk";return}
+  $("autoWalk").textContent="Stop";auto=setInterval(()=>{const t=spawns[0];if(!t)return;const dx=Math.sign(t.x-me.x),dy=dx?0:Math.sign(t.y-me.y);move(dx,dy)},500)};
+
+/* ---------- SOS ---------- */
+let holdT=null, holdStart=0, alarmOn=false, audio=null, osc=null;
+function setRing(p){$("ringArc").setAttribute("stroke-dashoffset",653*(1-p))}
+function startHold(e){e.preventDefault();if(alarmOn)return;holdStart=Date.now();holdT=setInterval(()=>{const p=Math.min(1,(Date.now()-holdStart)/2000);setRing(p);if(p>=1){endHold();trigger("Manual SOS")}},30)}
+function endHold(){clearInterval(holdT);holdT=null;if(!alarmOn)setRing(0)}
+const sb=$("sosBtn");
+sb.addEventListener("pointerdown",startHold);["pointerup","pointerleave","pointercancel"].forEach(ev=>sb.addEventListener(ev,endHold));
+sb.addEventListener("keydown",e=>{if((e.key===" "||e.key==="Enter")&&!holdT&&!e.repeat)startHold(e)});
+sb.addEventListener("keyup",e=>{if(e.key===" "||e.key==="Enter")endHold()});
+$("snatchSim").onclick=()=>{if(!S.armed){toast("Turn on snatch detection on Home first");return}trigger("Snatch detected")};
+function beep(){try{audio=audio||new (window.AudioContext||window.webkitAudioContext)();osc=audio.createOscillator();const g=audio.createGain();g.gain.value=.05;osc.type="square";osc.frequency.value=1800;osc.connect(g).connect(audio.destination);osc.start();let hi=true;osc._i=setInterval(()=>{hi=!hi;osc.frequency.value=hi?1800:1200},250)}catch(e){}}
+function stopBeep(){try{if(osc){clearInterval(osc._i);osc.stop();osc=null}}catch(e){}}
+function trigger(kind){
+  alarmOn=true;setRing(1);sb.classList.add("alarm");$("sosLabel").textContent="ALARM";$("sosSub").textContent="Alerts sent (demo)";$("cancelSos").disabled=false;beep();
+  const d=new Date();const lat=(3.1073+(me.y-4)*0.0009).toFixed(5), lng=(101.6067+(me.x-4)*0.0009).toFixed(5);
+  S.incidents.unshift({kind,ts:d.toISOString(),lat,lng,contacts:S.contacts.map(c=>c.n)});S.incidents=S.incidents.slice(0,5);save();renderLog()}
+$("cancelSos").onclick=()=>{alarmOn=false;stopBeep();sb.classList.remove("alarm");setRing(0);$("sosLabel").textContent="Hold";$("sosSub").textContent="for 2 seconds";$("cancelSos").disabled=true;toast("Alarm stopped. Contacts told you're safe (demo)")};
+function renderLog(){
+  if(!S.incidents.length){$("incLog").textContent="No incidents recorded.";$("copyReport").disabled=true;return}
+  $("incLog").textContent=S.incidents.map(i=>{const d=new Date(i.ts);return `${i.kind}\n${d.toLocaleDateString("en-MY",{day:"numeric",month:"short",year:"numeric"})}, ${d.toLocaleTimeString("en-MY",{hour:"2-digit",minute:"2-digit",second:"2-digit"})}\nLocation ${i.lat}, ${i.lng}\nAlerted: ${i.contacts.join(", ")||"none"}`}).join("\n\n");$("copyReport").disabled=false}
+$("copyReport").onclick=()=>{const i=S.incidents[0],d=new Date(i.ts);const txt=`EchoSafe incident report\nType: ${i.kind}\nDate: ${d.toLocaleDateString("en-MY")}\nTime: ${d.toLocaleTimeString("en-MY")}\nGPS: ${i.lat}, ${i.lng}\nDevice: EchoSafe Pekiki-4F2A`;
+  try{navigator.clipboard.writeText(txt).then(()=>toast("Report summary copied"),()=>toast("Copy not available here"))}catch(e){toast("Copy not available here")}};
+
+/* ---------- render ---------- */
+function render(){
+  questReset();
+  const eq=CHARS.find(c=>c.id===S.equipped)||CHARS[0];$("homePlush").innerHTML=plushSVG(eq);
+  $("connDot").classList.toggle("on",S.paired);$("connText").textContent=S.paired?"Connected":"Not paired";
+  $("pairBtn").textContent=S.paired?"Unpair":"Pair device";$("pairBtn").className=S.paired?"ghost":"pink";
+  $("devName").textContent=S.paired?eq.name+"-4F2A":"Your EchoSafe";
+  $("devStatus").textContent=S.paired?"Ready. Squeeze firmly for 2 seconds to trigger.":"Hold your plush near your phone to pair.";
+  $("testBtn").disabled=!S.paired;$("armSw").disabled=!S.paired;$("shareSw").disabled=!S.paired;
+  $("armSw").setAttribute("aria-checked",S.armed);$("shareSw").setAttribute("aria-checked",S.share);
+  $("batt").textContent=S.paired?"94%":"—";$("signal").textContent=S.paired?"Strong":"—";$("lastSeen").textContent=S.paired?"Now":"—";
+  $("lvl").textContent=S.level;$("xp").textContent=S.xp;$("xpNext").textContent=need(S.level);$("xpBar").style.width=(S.xp/need(S.level)*100)+"%";
+  const y=new Date(Date.now()-864e5).toISOString().slice(0,10);const live=(S.lastCheck===today()||S.lastCheck===y)?S.streak:0;
+  $("streakBig").textContent=live;$("streak2").textContent=live;
+  $("streakHint").textContent=S.lastCheck===today()?"Checked in today. Come back tomorrow!":live?"Check in today to keep it going.":"Check in today to start your streak.";
+  $("checkinBtn").disabled=S.lastCheck===today();$("checkinBtn").textContent=S.lastCheck===today()?"Checked in today ✓":"Daily safety check-in";
+  $("contacts").innerHTML=S.contacts.map(c=>`<div class="row" style="padding:6px 0"><div style="width:36px;height:36px;border-radius:50%;background:var(--pinkL);display:flex;align-items:center;justify-content:center;font-weight:700">${c.n.replace(/[<>&]/g,"")[0]||"?"}</div><div><b>${c.n.replace(/[<>&]/g,"")}</b><div class="muted">${c.p.replace(/[<>&]/g,"")}</div></div></div>`).join("");
+  const days=[];for(let i=6;i>=0;i--){const d=new Date(Date.now()-i*864e5);days.push(`<div class="${S.checkDays.includes(d.toISOString().slice(0,10))?"done":""}">${d.toLocaleDateString("en-MY",{weekday:"narrow"})}</div>`)}
+  $("week").innerHTML=days.join("");
+  $("quests").innerHTML=QUESTS.map(q=>{const d=S.quests.done.includes(q.id);return `<div class="badge"><div class="ic" style="background:${d?"var(--mint)":"var(--app)"};color:${d?"#fff":"var(--soft)"}">${d?"✓":"+"}</div><div style="flex:1"><b style="${d?"text-decoration:line-through;opacity:.6":""}">${q.t}</b></div><span class="muted">${q.xp} XP</span></div>`}).join("");
+  $("badges").innerHTML=BADGES.map(b=>{const ok=b.ok();return `<div class="badge" style="opacity:${ok?1:.45}"><div class="ic" style="background:${b.c}">${ok?"★":"☆"}</div><div><b>${b.t}</b><div class="muted">${b.d}</div></div></div>`}).join("");
+  $("collGrid").innerHTML=CHARS.map(c=>{const got=S.collected.includes(c.id);return `<div class="coll ${got?"":"locked"}"><svg viewBox="0 0 100 100" aria-hidden="true">${got?plushSVG(c):plushSVG({body:"#CFC6DA",ear:"#AFA3BF"})}</svg><h3 style="margin:4px 0 0">${got?c.name:"???"}</h3><div class="muted">${c.rare}</div><div class="muted" style="margin:6px 0">${got?c.story:"Keep exploring to find this friend."}</div>${got?`<button class="${S.equipped===c.id?"":"ghost"}" style="padding:6px 12px;font-size:13px" data-eq="${c.id}">${S.equipped===c.id?"Equipped":"Equip"}</button>`:""}</div>`}).join("");
+  document.querySelectorAll("[data-eq]").forEach(b=>b.onclick=()=>{S.equipped=b.dataset.eq;save();render();toast("Equipped "+CHARS.find(c=>c.id===S.equipped).name)});
+  renderLog();if($("v-map").classList.contains("active"))drawMap();
+}
+if(!S.collected.length){S.collected=["pekiki"];save()}
+render();drawMap();
+</script>
+</body>
+</html>
